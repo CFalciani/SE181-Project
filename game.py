@@ -1,11 +1,12 @@
+from classes import *
 import pygame
-import numpy as np
 import websocket
 try:
     import thread
 except ImportError:
     import _thread as thread
 import time
+
 class Game:
     def __init__(self):
         pygame.init()
@@ -23,7 +24,7 @@ class Game:
 
         #UNCOMMENT BELOW LINE TO CONNECT TO SERVER!
         #thread.start_new_thread(self.ws.run_forever, ()) # Start listening for messages on a new thread so we don't block the game
-        self.board = np.zeros((8,8))
+        self.board = Board()
         self.square_size = 100
         self.white_color = (255,255,255)
         self.black_color = (0,0,0)
