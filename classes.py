@@ -82,7 +82,7 @@ class Piece(ABC):
     # Returns a list of valid moves for the piece
     @abstractmethod
     def get_valid_moves(self, board):
-        # Implement check logic here probably
+        # Implement check logic here
         pass
 
     # Moves the piece to the specified space
