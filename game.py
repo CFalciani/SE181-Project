@@ -22,12 +22,12 @@ class Game:
                                 on_open = lambda ws: self.on_open(ws)) # Function to handle opening the server
 
         #UNCOMMENT BELOW LINE TO CONNECT TO SERVER!
-        #thread.start_new_thread(self.ws.run_forever, ()) # Start listening for messages on a new thread so we don't block the game
+        thread.start_new_thread(self.ws.run_forever, ()) # Start listening for messages on a new thread so we don't block the game
         self.board = np.zeros((8,8))
         self.square_size = 100
         self.white_color = (255,255,255)
         self.black_color = (0,0,0)
-        self.sidebar_size = 200
+        self.sidebar_size = 250
         self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
         self.right_sidebar = self.sidebar_size + self.board.shape[0] * self.square_size # X coordinate of the right sidebar
         self.header_font = pygame.font.Font('freesansbold.ttf', int(self.board.shape[1] * self.square_size * .03))
@@ -57,8 +57,10 @@ class Game:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         # Press escape to quit
-                        self.ws.send("quit")
-                        self.ws.close()
+                        try:
+                            self.ws.send("quit")
+                        except websocket._exceptions.WebSocketConnectionClosedException:
+                            pass
                         pygame.quit()
                         quit()
         
@@ -105,8 +107,8 @@ class Game:
             print("Waiting...")
             return
         if "You are team" in incMessage: # Means that both players are connected
-            print(incMessage)
             self.team = incMessage.split(": ")[-1] #Grab the team this client is on
+            print("You are on team: " + self.team)
             self.ready = True # Both players are in so we are ready to start
             self.my_turn = (self.team == "white")
             return 
@@ -130,7 +132,10 @@ class Game:
     def on_open(self, ws):
         def heartbeat(): # A heartbeat so the server knows the client is still alive
             while 1:
-                ws.send("hb")
+                try:
+                    self.ws.send("hb")
+                except websocket._exceptions.WebSocketConnectionClosedException:
+                    break
                 time.sleep(2)
         thread.start_new_thread(heartbeat, ())
 
