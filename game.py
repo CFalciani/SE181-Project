@@ -1,6 +1,6 @@
 from classes import *
 import pygame
-import websocket
+import websockets
 try:
     import thread
 except ImportError:
