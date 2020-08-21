@@ -22,7 +22,7 @@ class Game:
         self.team = "" # Will be set with wich team the player is on upon connection. Eg: "white" or "black"
         self.ready = False # Are both players connected?
         self.my_turn = False # True if it is this players turn
-        websocket.enableTrace(True)
+        #websocket.enableTrace(True)
         self.ws = websocket.WebSocketApp("ws://claytonfalciani.com", # Connect the web server to my server
                                 on_message = lambda ws,msg: self.on_message(ws,msg), # Function to handle messages
                                 on_error = lambda ws,err: self.on_error(ws,err), #Function to handle errors
@@ -114,8 +114,8 @@ class Game:
                 self.draw_square(self.black_color, j, i)
             start = int(not start) #Alternate a between 0 and 1
         #Draw the border lines on the left and right sidebar
-        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), width=2)
-        pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), width=2)
+        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), 2)
+        pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
 
     def draw_text(self, coords, text, color, font):
         text = font.render(text, True, color, self.white_color)
