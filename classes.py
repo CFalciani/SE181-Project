@@ -1,10 +1,12 @@
 from abc import ABC, abstractmethod
 import numpy as np
-
+import pygame
 
 class Board:
-    def __init__(self):
-        self.board = np.empty((8, 8), Piece)
+    def __init__(self, square_size, sidebar):
+        self.square_size = square_size
+        self.sidebar = sidebar
+        self.board = np.empty((8,8), Piece)
         self.shape = self.board.shape
         self.en_passant = None
         self.en_passant_counter = 0
@@ -55,18 +57,32 @@ class Board:
                 output += "| (%d, %d): %12s " % (j, i, self.board[i][j])
             print(output)
 
+    def draw(self, window):
+        for i in range(8):
+            for j in range(8):
+                piece = self.get_space(i,j)
+                if (piece == None):
+                    continue
+                window.blit(piece.img, (i * self.square_size + self.sidebar + 10, j * self.square_size + 10))
+
+
+
 
 class Piece(ABC):
     @abstractmethod
-    def __init__(self, color, x, y):
+    def __init__(self, color, name, x, y):
         self.x = x
         self.y = y
         self.color = color
+        self.name = name
+        self.path = "assets/" + color + name + ".png"
+        self.img = pygame.image.load(self.path)
         super().__init__()
 
     # Returns a list of valid moves for the piece
     @abstractmethod
     def get_valid_moves(self, board):
+        # Implement check logic here
         pass
 
     # Moves the piece to the specified space
@@ -80,7 +96,6 @@ class Piece(ABC):
         self.x = new_x
         self.y = new_y
         board.add_piece(self)
-        # Implement check logic here
 
     def __str__(self):
         return "%s %s" % (self.color, self.name)
@@ -88,7 +103,7 @@ class Piece(ABC):
 
 class Queen(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "Queen" ,x, y)
         self.name = "Queen"
 
     def get_valid_moves(self, board):
@@ -231,7 +246,7 @@ class Queen(Piece):
 
 class Pawn(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "Pawn", x, y)
         self.name = "Pawn"
         self.moved = False
         self.en_passant = False
@@ -287,7 +302,7 @@ class Pawn(Piece):
 
 class Rook(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "Rook", x, y)
         self.name = "Rook"
         self.moved = False
 
@@ -367,7 +382,7 @@ class Rook(Piece):
 
 class Bishop(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "Bishop", x, y)
         self.name = "Bishop"
 
     def get_valid_moves(self, board):
@@ -446,7 +461,7 @@ class Bishop(Piece):
 
 class Knight(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "Knight", x, y)
         self.name = "Knight"
 
     def get_valid_moves(self, board):
@@ -513,7 +528,7 @@ class Knight(Piece):
 
 class King(Piece):
     def __init__(self, color, x, y):
-        super().__init__(color, x, y)
+        super().__init__(color, "King", x, y)
         self.name = "King"
         self.moved = False
 
