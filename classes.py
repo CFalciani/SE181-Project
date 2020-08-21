@@ -4,7 +4,7 @@ import numpy as np
 
 class Board:
     def __init__(self):
-        self.board = np.empty((8,8), Piece)
+        self.board = np.empty((8, 8), Piece)
         self.shape = self.board.shape
         self.en_passant = None
         self.en_passant_counter = 0
@@ -67,7 +67,6 @@ class Piece(ABC):
     # Returns a list of valid moves for the piece
     @abstractmethod
     def get_valid_moves(self, board):
-        # Implement check logic here probably
         pass
 
     # Moves the piece to the specified space
@@ -81,6 +80,7 @@ class Piece(ABC):
         self.x = new_x
         self.y = new_y
         board.add_piece(self)
+        # Implement check logic here
 
     def __str__(self):
         return "%s %s" % (self.color, self.name)
