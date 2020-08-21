@@ -44,56 +44,98 @@ class Game:
             (self.board.shape[0] * self.square_size + self.sidebar_size * 2, 
             self.board.shape[1] * self.square_size))
 
+        #MAIN MENU COMPONENTS
+        #Conecting Animation images
+        self.loadingAnimation = []
+        self.chessAnimation = []
+        for i in range(0, 31):
+            self.loadingAnimation.append(pygame.image.load("assets/connectingAnimation/frame-" + str(i) + ".png"))
+            self.chessAnimation.append(pygame.image.load("assets/chessAnimation/frame-" + str(i) + ".png"))
+        self.frame = 0
+
         while 1:
-            # Run the game
-            if self.messageAvailable: # check if theres a message available
-                print(self.message) 
-                self.activity_texts.append(((0, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
-                # And processing with the message should go here
-                origin = ord(self.message[0]) - 97, int(self.message[1])
-                dest = ord(self.message[3]) - 97, int(self.message[4])
-                self.board.get_space(*origin).move(self.board, *dest)
-                self.messageAvailable = False # make sure to tell the game you have read the message
-                self.my_turn = True
+            if (self.ready):
+                # Run the game
+                if self.messageAvailable: # check if theres a message available
+                    print(self.message) 
+                    self.activity_texts.append(((0, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
+                    # And processing with the message should go here
+                    origin = ord(self.message[0]) - 97, int(self.message[1])
+                    dest = ord(self.message[3]) - 97, int(self.message[4])
+                    self.board.get_space(*origin).move(self.board, *dest)
+                    self.messageAvailable = False # make sure to tell the game you have read the message
+                    self.my_turn = True
 
-            self.draw()
+                self.draw()
 
-            for event in pygame.event.get():
-                # Test for any user input
-                if event.type == pygame.MOUSEBUTTONUP:
-                    if self.my_turn:
-                        coords = pygame.mouse.get_pos()
-                        if self.left_sidebar < coords[0] < self.right_sidebar:
-                            square = self.coords_to_square(coords)
+                for event in pygame.event.get():
+                    # Test for any user input
+                    if event.type == pygame.MOUSEBUTTONUP:
+                        if self.my_turn:
+                            coords = pygame.mouse.get_pos()
+                            if self.left_sidebar < coords[0] < self.right_sidebar:
+                                square = self.coords_to_square(coords)
 
-                            if square in self.moves:
-                                move_str = chr(self.selected_piece.x + 97) + str(self.selected_piece.y) + " " + chr(square[0] + 97) + str(square[1])
-                                self.ws.send(move_str)
-                                self.selected_piece.move(self.board, *square)  
-                                self.selected_piece = None
-                                self.moves = []
-                                self.my_turn = False
-                                continue
-                            self.selected_piece = self.board.get_space(*square)
-                            
-                            if self.selected_piece is not None and self.selected_piece.color.lower() == self.team.lower():
-                                self.moves = self.selected_piece.get_valid_moves(self.board)
+                                if square in self.moves:
+                                    move_str = chr(self.selected_piece.x + 97) + str(self.selected_piece.y) + " " + chr(square[0] + 97) + str(square[1])
+                                    self.ws.send(move_str)
+                                    self.selected_piece.move(self.board, *square)  
+                                    self.selected_piece = None
+                                    self.moves = []
+                                    self.my_turn = False
+                                    continue
+                                self.selected_piece = self.board.get_space(*square)
+                                
+                                if self.selected_piece is not None and self.selected_piece.color.lower() == self.team.lower():
+                                    self.moves = self.selected_piece.get_valid_moves(self.board)
+                                else:
+                                    self.selected_piece = None
+                                    self.moves = []
                             else:
                                 self.selected_piece = None
                                 self.moves = []
-                        else:
-                            self.selected_piece = None
-                            self.moves = []
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        # Press escape to quit
-                        try:
-                            self.ws.send("quit")
-                        except websocket._exceptions.WebSocketConnectionClosedException:
-                            pass
-                        pygame.quit()
-                        quit()
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            # Press escape to quit
+                            try:
+                                self.ws.send("quit")
+                            except websocket._exceptions.WebSocketConnectionClosedException:
+                                pass
+                            pygame.quit()
+                            quit()
+            #Main Menu               
+            else:
+                self.drawMainMenu()
+                
+                for event in pygame.event.get():
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_ESCAPE:
+                            # Press escape to quit
+                            try:
+                                self.ws.send("quit")
+                            except websocket._exceptions.WebSocketConnectionClosedException:
+                                pass
+                            pygame.quit()
+                            quit()
+
+    def drawMainMenu(self):
+        self.window.fill(self.white_color)
+
+        #Text
+        loadingText = self.text_font.render("Waiting for other player to connect...", True, (255,0,0), self.white_color)
+        self.window.blit(loadingText, (550, 340))
+
+        #Title & Connecting animation
+        pygame.time.delay(25)
+        self.window.blit(self.loadingAnimation[self.frame], (540, 400))
+        self.window.blit(self.chessAnimation[self.frame], (505, 150))
+        self.frame += 1
+        if (self.frame > 30):
+            self.frame = 0
+    
+        pygame.display.update()
         
+
     def draw(self):
         self.draw_board()
         text = self.header_font.render("Your Turn" if self.my_turn else "Opponents Turn", True, (255,0,0), self.white_color)
@@ -114,8 +156,8 @@ class Game:
                 self.draw_square(self.black_color, j, i)
             start = int(not start) #Alternate a between 0 and 1
         #Draw the border lines on the left and right sidebar
-        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), width=2)
-        pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), width=2)
+        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), 2)
+        pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
 
     def draw_text(self, coords, text, color, font):
         text = font.render(text, True, color, self.white_color)
