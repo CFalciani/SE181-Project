@@ -10,13 +10,6 @@ import time
 class Game:
     def __init__(self):
         pygame.init()
-        self.square_size = 100
-        self.white_color = (240,240,240)
-        self.black_color = (20,20,20)
-        self.sidebar_size = 250
-        self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
-        self.board = Board(self.square_size, self.sidebar_size)
-        self.board.fill_board()
         self.messageAvailable = False # set to true if a new message is recieved. Should be set to false once read
         self.message = "" # Contains the new message, will be overwritten only when messageAvailable is false
         self.team = "" # Will be set with wich team the player is on upon connection. Eg: "white" or "black"
@@ -31,6 +24,13 @@ class Game:
 
         #UNCOMMENT BELOW LINE TO CONNECT TO SERVER!
         thread.start_new_thread(self.ws.run_forever, ()) # Start listening for messages on a new thread so we don't block the game
+        self.square_size = 100
+        self.white_color = (240,240,240)
+        self.black_color = (20,20,20)
+        self.sidebar_size = 250
+        self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
+        self.board = Board(self.square_size, self.sidebar_size)
+        self.board.fill_board()
         self.right_sidebar = self.sidebar_size + self.board.shape[0] * self.square_size # X coordinate of the right sidebar
         self.header_font = pygame.font.Font('freesansbold.ttf', int(self.board.shape[1] * self.square_size * .03))
         self.text_font = pygame.font.Font('freesansbold.ttf', int(self.board.shape[1] * self.square_size * .015))
@@ -62,7 +62,8 @@ class Game:
                     # And processing with the message should go here
                     origin = ord(self.message[0]) - 97, int(self.message[1])
                     dest = ord(self.message[3]) - 97, int(self.message[4])
-                    self.board.get_space(*origin).move(self.board, *dest)
+                    piece = self.board.get_space(*origin)
+                    piece.move(self.board, *dest)
                     self.messageAvailable = False # make sure to tell the game you have read the message
                     self.my_turn = True
 
@@ -74,8 +75,10 @@ class Game:
                         if self.my_turn:
                             coords = pygame.mouse.get_pos()
                             if self.left_sidebar < coords[0] < self.right_sidebar:
-                                square = self.coords_to_square(coords)
-
+                                if self.team == "black":
+                                    square = self.board.flip(*self.coords_to_square(coords))
+                                else:
+                                    square = self.coords_to_square(coords)
                                 if square in self.moves:
                                     move_str = chr(self.selected_piece.x + 97) + str(self.selected_piece.y) + " " + chr(square[0] + 97) + str(square[1])
                                     self.ws.send(move_str)
@@ -143,8 +146,14 @@ class Game:
         for text in self.activity_texts:
             self.draw_text(*text)
         for move in self.moves:
-            self.draw_square((150,180,255), *move)
-        self.board.draw(self.window)
+            if self.team == "black":
+                self.draw_square((150,180,255), *self.board.flip(*move))
+            else:
+                self.draw_square((150,180,255), *move)
+        if self.team == "black":
+            self.board.draw_rev(self.window)
+        else:
+            self.board.draw(self.window)
         pygame.display.update()
     
     def draw_board(self):
@@ -191,7 +200,6 @@ class Game:
             print("You are on team: " + self.team)
             self.ready = True # Both players are in so we are ready to start
             self.my_turn = (self.team == "white")
-
             return 
         if "quit" == incMessage:
             print("Opponent Quit!")

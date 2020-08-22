@@ -14,17 +14,24 @@ class Board:
     def __str__(self):
         return str(self.board)
 
+    def flip(self, x,y):
+        return 7 - x, 7 - y
+
     # Returns the contents of the specified space
     def get_space(self, x, y):
         return self.board[y][x]
 
     # Adds a piece to the board
     def add_piece(self, piece):
-        self.board[piece.y][piece.x] = piece
+        x = piece.x
+        y = piece.y
+        self.board[y][x] = piece
 
     # Removes a piece from the board
     def remove_piece(self, piece):
-        self.board[piece.y][piece.x] = None
+        x = piece.x
+        y = piece.y
+        self.board[y][x] = None
 
     # Places all pieces in their starting positions
     def fill_board(self):
@@ -65,6 +72,14 @@ class Board:
                     continue
                 window.blit(piece.img, (i * self.square_size + self.sidebar + 10, j * self.square_size + 10))
 
+    def draw_rev(self, window):
+        for i in range(8): # For the black team the board must be reversed
+            for j in range(8):
+                piece = self.get_space(i,j)
+                if (piece == None):
+                    continue 
+                # 7 - x and 7 - y gives us the reversed coords
+                window.blit(piece.img, ((7-i) * self.square_size + self.sidebar + 10, (7-j) * self.square_size + 10))
 
 
 
