@@ -39,10 +39,12 @@ class Game:
         self.selected_piece = None
         # Text format: (coords, string, text_color, font)
         self.activity_texts = [((0,0),"Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
+        self.horizontal_label = []
+        self.vertical_label = []
 
         self.window = pygame.display.set_mode(
             (self.board.shape[0] * self.square_size + self.sidebar_size * 2, 
-            self.board.shape[1] * self.square_size))
+            (self.board.shape[1] + 1) * self.square_size))
 
         #MAIN MENU COMPONENTS
         #Conecting Animation images
@@ -167,6 +169,11 @@ class Game:
         #Draw the border lines on the left and right sidebar
         pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), 2)
         pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar, self.board.shape[1] * self.square_size), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        for index,label in enumerate(self.vertical_label):
+            self.window.blit(label, (self.left_sidebar - 100, index * self.square_size))
+        for index,label in enumerate(self.horizontal_label):
+            self.window.blit(label, (self.left_sidebar + (index - 1) * self.square_size, self.board.shape[1]))
 
     def draw_text(self, coords, text, color, font):
         text = font.render(text, True, color, self.white_color)
