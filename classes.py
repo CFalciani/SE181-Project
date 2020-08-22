@@ -73,13 +73,13 @@ class Board:
                 window.blit(piece.img, (i * self.square_size + self.sidebar + 10, j * self.square_size + 10))
 
     def draw_rev(self, window):
-        for i in range(8):
+        for i in range(8): # For the black team the board must be reversed
             for j in range(8):
                 piece = self.get_space(i,j)
                 if (piece == None):
-                    continue
-                i,j = self.flip(i,j)
-                window.blit(piece.img, (i * self.square_size + self.sidebar + 10, j * self.square_size + 10))
+                    continue 
+                # 7 - x and 7 - y gives us the reversed coords
+                window.blit(piece.img, ((7-i) * self.square_size + self.sidebar + 10, (7-j) * self.square_size + 10))
 
 
 

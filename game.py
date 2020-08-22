@@ -62,7 +62,8 @@ class Game:
                     # And processing with the message should go here
                     origin = ord(self.message[0]) - 97, int(self.message[1])
                     dest = ord(self.message[3]) - 97, int(self.message[4])
-                    self.board.get_space(*origin).move(self.board, *dest)
+                    piece = self.board.get_space(*origin)
+                    piece.move(self.board, *dest)
                     self.messageAvailable = False # make sure to tell the game you have read the message
                     self.my_turn = True
 
