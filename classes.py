@@ -108,7 +108,6 @@ class Board:
                 window.blit(piece.img, ((7-i) * self.square_size + self.sidebar + 10, (7-j) * self.square_size + 10))
 
     def get_check_moves(self):
-        print("Check")
         self.check_other_moves = []
         attacker = self.attacking_piece.name
         attack = self.attacking_piece.color
@@ -157,7 +156,7 @@ class Board:
 
     def checkmate(self, winner):
         # CHECKMATE
-        print("Checkmate")
+        pass
 
 
 class Piece(ABC):
@@ -194,8 +193,6 @@ class Piece(ABC):
                 total_spaces[i[1]][i[0]] = 1
         if board.check and self.name != "King":
             restricted_output = []
-            print(board.check_other_moves)
-            print(output)
             for i in output:
                 for u in board.check_other_moves:
                     if i == u:
