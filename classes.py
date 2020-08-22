@@ -11,16 +11,20 @@ class Board:
         self.shape = self.board.shape
         self.white_pieces = []
         self.black_pieces = []
+        self.white_king = None
+        self.black_king = None
         self.white_spaces = np.zeros((8, 8))
         self.black_spaces = np.zeros((8, 8))
         self.en_passant = None
         self.en_passant_counter = 0
         self.check = False
+        self.attacking_piece = None
+        self.check_other_moves = []
 
     def __str__(self):
         return str(self.board)
 
-    def flip(self, x,y):
+    def flip(self, x, y):
         return 7 - x, 7 - y
 
     # Returns the contents of the specified space
@@ -32,8 +36,12 @@ class Board:
         self.board[piece.y][piece.x] = piece
         if piece.color == "White":
             self.white_pieces.append(piece)
+            if piece.name == "King":
+                self.white_king = piece
         else:
             self.black_pieces.append(piece)
+            if piece.name == "King":
+                self.black_king = piece
 
     # Removes a piece from the board
     def remove_piece(self, piece):
@@ -99,6 +107,57 @@ class Board:
                 # 7 - x and 7 - y gives us the reversed coords
                 window.blit(piece.img, ((7-i) * self.square_size + self.sidebar + 10, (7-j) * self.square_size + 10))
 
+    def get_check_moves(self):
+        self.check_other_moves = []
+        attacker = self.attacking_piece.name
+        attack = self.attacking_piece.color
+        blockable = False
+        if attack == "White":
+            defense = board.black_spaces
+            defender = self.black_king
+        else:
+            defense = board.white_spaces
+            defender = self.white_king
+        check_king_moves = defender.get_valid_moves(board)
+        self.check_other_moves.append((self.attacking_piece.x, self.attacking_piece.y))
+        if defense[self.attacking_piece.y][self.attacking_piece.x] == 1:
+            blockable = True
+        if attacker == "Queen" or attacker == "Bishop" or attacker == "Rook":
+            directions = ((0, -1), (1, -1), (1, 0), (1, 1), (0, 1), (-1, 1), (-1, 0), (-1, -1))
+            x_dif = self.attacking_piece.x - defender.x
+            y_dif = self.attacking_piece.y - defender.y
+            if x_dif < 0:
+                if y_dif < 0:
+                    direction = directions[7]
+                elif y_dif == 0:
+                    direction = directions[6]
+                else:
+                    direction = directions[5]
+            elif x_dif == 0:
+                if y_dif < 0:
+                    direction = directions[0]
+                else:
+                    direction = directions[4]
+            else:
+                if y_dif < 0:
+                    direction = directions[1]
+                elif y_dif == 0:
+                    direction = directions[2]
+                else:
+                    direction = directions[3]
+            dif = max(abs(x_dif), abs(y_dif))
+            for i in range(1, dif):
+                path_space = (defender.x + i * direction[0], defender.y + i * direction[1])
+                self.check_other_moves.append(path_space)
+                if defense[path_space[1]][path_space[0]] == 1:
+                    blockable = True
+        if not check_king_moves and not blockable:
+            self.checkmate(attack)
+
+    def checkmate(self, winner):
+        # CHECKMATE
+        pass
+
 
 class Piece(ABC):
     @abstractmethod
@@ -119,15 +178,28 @@ class Piece(ABC):
         for i in output:
             space = board.get_space(i[0], i[1])
             if space is not None and space.color != self.color and space.name == "King":
-                self.spaces[i[1]][i[0]] = 2
+                self.spaces[i[1]][i[0]] = 1
                 board.check = True
+                board.attacking_piece = self
             else:
                 self.spaces[i[1]][i[0]] = 1
             if self.color == "White":
                 total_spaces = board.white_spaces
             else:
                 total_spaces = board.black_spaces
-            total_spaces[i[1]][i[0]] = 1
+            if self.name == "King" and total_spaces[i[1]][i[0]] == 0:
+                total_spaces[i[1]][i[0]] = 2
+            else:
+                total_spaces[i[1]][i[0]] = 1
+        if board.check and self.name != "King":
+            restricted_output = []
+            for i in output:
+                for u in board.check_other_moves:
+                    if i == u:
+                        restricted_output.append(i)
+            return restricted_output
+        else:
+            return output
 
     # Moves the piece to the specified space
     def move(self, board, new_x, new_y):
@@ -146,21 +218,17 @@ class Piece(ABC):
         board.board[new_y][new_x] = self
         self.x = new_x
         self.y = new_y
-        white_king_pos = 0
-        black_king_pos = 0
         for i in range(len(board.white_pieces)):
-            if board.white_pieces[i].name == "King":
-                white_king_pos = i
-            else:
+            if board.white_pieces[i].name != "King":
                 board.white_pieces[i].get_valid_moves(board)
         for i in range(len(board.black_pieces)):
-            if board.black_pieces[i].name == "King":
-                black_king_pos = i
-            else:
+            if board.black_pieces[i].name != "King":
                 board.black_pieces[i].get_valid_moves(board)
-        board.white_pieces[white_king_pos].get_valid_moves(board)
-        board.black_pieces[black_king_pos].get_valid_moves(board)
-        board.white_pieces[white_king_pos].get_valid_moves(board)
+        board.white_king.get_valid_moves(board)
+        board.black_king.get_valid_moves(board)
+        board.white_king.get_valid_moves(board)
+        if board.check:
+            board.get_check_moves()
 
     def __str__(self):
         return "%s %s" % (self.color, self.name)
@@ -326,8 +394,7 @@ class Queen(Piece):
                         spaces[new_y][new_x] = 1
                     break
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
 
 class Pawn(Piece):
@@ -379,8 +446,7 @@ class Pawn(Piece):
             elif board.en_passant.x == self.x + 1:
                 output.append((self.x + 1, self.y + self.direction))
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
     def move(self, board, new_x, new_y):
         if new_x != self.x and board.get_space(new_x, new_y) is None:
@@ -480,8 +546,7 @@ class Rook(Piece):
                         spaces[new_y][new_x] = 1
                     break
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
     def move(self, board, new_x, new_y):
         super().move(board, new_x, new_y)
@@ -576,8 +641,7 @@ class Bishop(Piece):
                         spaces[new_y][new_x] = 1
                     break
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
 
 class Knight(Piece):
@@ -664,8 +728,7 @@ class Knight(Piece):
             elif space is not None and space.color == self.color:
                 spaces[new_y][new_x] = 1
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
 
 class King(Piece):
@@ -687,89 +750,89 @@ class King(Piece):
         new_x = self.x
         new_y = self.y - 1
         if new_y >= 0:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Up-Right
         new_x = self.x + 1
         new_y = self.y - 1
         if new_x < board.shape[1] and new_y >= 0:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Right
         new_x = self.x + 1
         new_y = self.y
         if new_x < board.shape[1]:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Down-Right
         new_x = self.x + 1
         new_y = self.y + 1
         if new_x < board.shape[1] and new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Down
         new_x = self.x
         new_y = self.y + 1
         if new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Down-Left
         new_x = self.x - 1
         new_y = self.y + 1
         if new_x >= 0 and new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Left
         new_x = self.x - 1
         new_y = self.y
         if new_x >= 0:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Up-Left
         new_x = self.x - 1
         new_y = self.y - 1
         if new_x >= 0 and new_y >= 0:
-            if blocked_spaces[new_y][new_x] == 0:
+            if blocked_spaces[new_y][new_x] != 1:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
-            else:
-                spaces[new_y][new_x] = 1
+            elif spaces[new_y][new_x] == 0:
+                spaces[new_y][new_x] = 2
 
         # Castling
         if not self.moved:
@@ -785,8 +848,7 @@ class King(Piece):
                     and board.get_space(6, self.y) is None and blocked_spaces[self.y][7] == 0:
                 output.append((6, self.y))
 
-        super().get_valid_moves(board, output)
-        return output
+        return super().get_valid_moves(board, output)
 
     def move(self, board, new_x, new_y):
         if not self.moved:
@@ -810,11 +872,14 @@ class King(Piece):
 if __name__ == "__main__":
     board = Board(100, 250)
     board.fill_board()
-    test_piece = board.get_space(4, 0)
-    board.remove_piece(board.get_space(1, 0))
-    board.remove_piece(board.get_space(2, 0))
-    board.remove_piece(board.get_space(3, 0))
-    board.remove_piece(board.get_space(5, 0))
+    board.remove_piece(board.get_space(0, 6))
+    board.remove_piece(board.get_space(1, 6))
+    board.remove_piece(board.get_space(2, 6))
+    board.remove_piece(board.get_space(3, 6))
+    board.remove_piece(board.get_space(4, 6))
+    board.remove_piece(board.get_space(5, 6))
+    board.remove_piece(board.get_space(6, 6))
+    board.remove_piece(board.get_space(7, 6))
     board.remove_piece(board.get_space(0, 1))
     board.remove_piece(board.get_space(1, 1))
     board.remove_piece(board.get_space(2, 1))
@@ -823,7 +888,13 @@ if __name__ == "__main__":
     board.remove_piece(board.get_space(5, 1))
     board.remove_piece(board.get_space(6, 1))
     board.remove_piece(board.get_space(7, 1))
-    board.get_space(2, 7).move(board, 2, 7)
+    board.remove_piece(board.get_space(2, 0))
+    board.remove_piece(board.get_space(3, 0))
+    board.remove_piece(board.get_space(6, 0))
+    board.remove_piece(board.get_space(5, 0))
+    board.get_space(1, 0).move(board, 2, 7)
+    board.get_space(0, 7).move(board, 3, 5)
+    board.get_space(7, 7).move(board, 5, 5)
+    board.get_space(3, 7).move(board, 4, 6)
     board.print_board()
-    print(test_piece.get_valid_moves(board))
-    print(board.black_spaces)
+    print(board.get_space(0, 0).get_valid_moves(board))
