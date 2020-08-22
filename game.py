@@ -38,11 +38,11 @@ class Game:
         self.moves = []
         self.selected_piece = None
         # Text format: (coords, string, text_color, font)
-        self.activity_texts = [((0,0),"Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
+        self.activity_texts = [("Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
 
         self.window = pygame.display.set_mode(
             (self.board.shape[0] * self.square_size + self.sidebar_size * 2, 
-            self.board.shape[1] * self.square_size))
+            (self.board.shape[1] + 1) * self.square_size))
 
         #MAIN MENU COMPONENTS
         #Conecting Animation images
@@ -57,8 +57,15 @@ class Game:
             if (self.ready):
                 # Run the game
                 if self.messageAvailable: # check if theres a message available
-                    print(self.message) 
-                    self.activity_texts.append(((0, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
+                    print(self.message)
+                    # Process message for display. Array is 0 based but the actual board is not
+                    message = self.message[0].upper()
+                    message += str(8 - int(self.message[1]))
+                    message += " to "
+                    message += self.message[3].upper()
+                    message += str(8 - int(self.message[4]))
+                    # Display message on activity board
+                    self.activity_texts.append(("Opponent: " + message, (134,134,134), self.text_font))
                     # And processing with the message should go here
                     origin = ord(self.message[0]) - 97, int(self.message[1])
                     dest = ord(self.message[3]) - 97, int(self.message[4])
@@ -81,6 +88,12 @@ class Game:
                                     square = self.coords_to_square(coords)
                                 if square in self.moves:
                                     move_str = chr(self.selected_piece.x + 97) + str(self.selected_piece.y) + " " + chr(square[0] + 97) + str(square[1])
+                                    message = move_str[0].upper()
+                                    message += str(8 - int(move_str[1]))
+                                    message += " to "
+                                    message += move_str[3].upper()
+                                    message += str(8 - int(move_str[4]))
+                                    self.activity_texts.append(("You: " + message, (134,134,134), self.text_font))
                                     self.ws.send(move_str)
                                     self.selected_piece.move(self.board, *square)  
                                     self.selected_piece = None
@@ -143,8 +156,12 @@ class Game:
         self.draw_board()
         text = self.header_font.render("Your Turn" if self.my_turn else "Opponents Turn", True, (255,0,0), self.white_color)
         self.window.blit(text, (self.right_sidebar + 20,0))
-        for text in self.activity_texts:
-            self.draw_text(*text)
+        y = len(self.activity_texts) * 30
+        if y - self.window.get_size()[1] >= 30:
+            self.activity_texts = self.activity_texts.pop(1)
+            self.activity_texts = self.activity_texts.pop(1)
+        for index,text in enumerate(self.activity_texts):
+            self.draw_text((0, index * 30), *text)
         for move in self.moves:
             if self.team == "black":
                 self.draw_square((150,180,255), *self.board.flip(*move))
@@ -167,6 +184,13 @@ class Game:
         #Draw the border lines on the left and right sidebar
         pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), 2)
         pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar, self.board.shape[1] * self.square_size), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        for index,value in enumerate(self.vertical_label):
+            text = self.header_font.render(value, True, (0,0,0), self.white_color)
+            self.window.blit(text, (self.sidebar_size - 30, index * self.square_size + 40))
+        for index,value in enumerate(self.horizontal_label):
+            text = self.header_font.render(value, True, (0,0,0), self.white_color)
+            self.window.blit(text, (self.sidebar_size + (index * self.square_size) + 40, self.board.shape[1]*self.square_size + 30))
 
     def draw_text(self, coords, text, color, font):
         text = font.render(text, True, color, self.white_color)
@@ -199,6 +223,12 @@ class Game:
             self.team = incMessage.split(": ")[-1] #Grab the team this client is on
             print("You are on team: " + self.team)
             self.ready = True # Both players are in so we are ready to start
+            if self.team == "white":
+                self.horizontal_label = ["A","B","C","D","E","F","G","H"]
+                self.vertical_label = ["8", "7", "6", "5", "4", "3", "2", "1"]
+            else:
+                self.horizontal_label = ["H","G","F","E","D","C","B","A"]
+                self.vertical_label = ["1", "2", "3", "4", "5", "6", "7", "8"]
             self.my_turn = (self.team == "white")
             return 
         if "quit" == incMessage:
