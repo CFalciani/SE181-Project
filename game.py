@@ -180,8 +180,8 @@ class Game:
         self.window.blit(text, (self.right_sidebar + 20,0))
         y = len(self.activity_texts) * 30
         if y - self.window.get_size()[1] >= 30:
-            self.activity_texts = self.activity_texts.pop(1)
-            self.activity_texts = self.activity_texts.pop(1)
+            self.activity_texts.pop(1)
+            self.activity_texts.pop(1)
         for index,text in enumerate(self.activity_texts):
             self.draw_text((0, index * 30), *text)
         for move in self.moves:
