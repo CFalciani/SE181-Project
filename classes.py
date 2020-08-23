@@ -1030,9 +1030,8 @@ if __name__ == "__main__":
     board.print_board()
 
     print("\nTesting bishop capture for Rook:")
-    print(board.get_space(6, 0).move(board, 5, 0))
-    #capturedPiece = board.get_space(6, 0).move(board, 5, 0)[1].name
-   # print(capturedPiece, "was captured") 
+    capturedPiece = board.get_space(6, 0).move(board, 5, 0)[1].name
+    print(capturedPiece, "was captured") 
     board.print_board()
 
     print("END OF ROOK TESTS\n\n")
@@ -1064,5 +1063,117 @@ if __name__ == "__main__":
     print(capturedPiece, "was captured") 
     board.print_board()
 
+    print("\nTesting knight capture for Bishop:")
+    board.get_space(6, 0).move(board, 5, 2)
+    capturedPiece = board.get_space(6, 1).move(board, 5, 2)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting rook capture for Bishop:")
+    board.get_space(7, 0).move(board, 6, 1)
+    capturedPiece = board.get_space(5, 2).move(board, 6, 1)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting bishop capture for Bishop:")
+    capturedPiece = board.get_space(6, 1).move(board, 5, 0)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("END OF BISHOP TESTS\n\n")
+
+
+    # TEST 5.5: Knight
+    # new board
+    board = Board(100, 250)
+    board.fill_board()
+
+    print("\nKNIGHT TESTS...\n")
+    board.print_board()
+
+    print("\nTesting valid moves for Knight:")
+    # valid moves: [(7, 5), (5, 5)] 
+    print(board.get_space(6, 7).get_valid_moves(board))
+    board.get_space(6, 7).move(board, 5, 5)
+    board.print_board()
+    # valid moves: [(6, 3), (7, 4), (6, 7), (3, 4), (4, 3)]
+    print(board.get_space(5, 5).get_valid_moves(board))
     
-    
+    print("\nTesting pawn capture for Knight:")
+    board.get_space(5, 5).move(board, 5, 3)
+    capturedPiece = board.get_space(5, 3).move(board, 6, 1)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting rook capture for Knight:")
+    board.get_space(7, 0).move(board, 7, 3)
+    capturedPiece = board.get_space(6, 1).move(board, 7, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting bishop capture for Knight:")
+    board.get_space(5, 7).move(board, 5, 2)
+    capturedPiece = board.get_space(6, 0).move(board, 5, 2)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting knight capture for Knight:")
+    capturedPiece = board.get_space(5, 2).move(board, 7, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("END OF KNIGHT TESTS\n\n")
+
+
+     # TEST 5.6: King
+    # new board
+    board = Board(100, 250)
+    board.fill_board()
+
+    print("\nKING TESTS...\n")
+    board.print_board()
+
+    print("\nTesting valid moves for King:")
+    # valid moves: [] 
+    print(board.get_space(4, 7).get_valid_moves(board))
+    board.get_space(4, 6).move(board, 4, 2)
+    board.print_board() 
+    # valid moves: [(4, 6)] 
+    print(board.get_space(4, 7).get_valid_moves(board))
+    board.get_space(4, 7).move(board, 4, 4)
+    board.print_board() 
+    # valid moves: [(4, 3), (5, 4), (5, 5), (4, 5), (3, 5), (3, 4)]
+    print(board.get_space(4, 4).get_valid_moves(board))
+
+    print("\nTesting pawn capture for King:")
+    board.get_space(5, 1).move(board, 5, 3)
+    capturedPiece = board.get_space(4, 4).move(board, 5, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting rook capture for King:")
+    board.get_space(7, 0).move(board, 6, 4)
+    capturedPiece = board.get_space(5, 3).move(board, 6, 4)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting bishop capture for King:")
+    board.get_space(5, 0).move(board, 5, 3)
+    capturedPiece = board.get_space(6, 4).move(board, 5, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting knight capture for King:")
+    board.get_space(6, 0).move(board, 6, 2)
+    capturedPiece = board.get_space(5, 3).move(board, 6, 2)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting queen capture for King:")
+    board.get_space(3, 0).move(board, 5, 1)
+    capturedPiece = board.get_space(6, 2).move(board, 5, 1)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+
+    print("END OF KING TESTS\n\n")
