@@ -10,13 +10,23 @@ import time
 class Game:
     def __init__(self):
         pygame.init()
-        self.square_size = 100
-        self.white_color = (255,255,255)
-        self.black_color = (20,20,20)
-        self.sidebar_size = 250
-        self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
-        self.board = Board(self.square_size, self.sidebar_size)
-        self.board.fill_board()
+        # Hold the captured pieces for both teams for display
+        self.captured = {
+            "White": {
+                "Pawn": [],
+                "Knight": [],
+                "Bishop": [],
+                "Rook": [],
+                "Queen": [],
+            },
+            "Black": {
+                "Pawn": [],
+                "Knight": [],
+                "Bishop": [],
+                "Rook": [],
+                "Queen": [],
+            }
+        }
         self.messageAvailable = False # set to true if a new message is recieved. Should be set to false once read
         self.message = "" # Contains the new message, will be overwritten only when messageAvailable is false
         self.team = "" # Will be set with wich team the player is on upon connection. Eg: "white" or "black"
@@ -31,6 +41,13 @@ class Game:
 
         #UNCOMMENT BELOW LINE TO CONNECT TO SERVER!
         thread.start_new_thread(self.ws.run_forever, ()) # Start listening for messages on a new thread so we don't block the game
+        self.square_size = 100
+        self.white_color = (240,240,240)
+        self.black_color = (20,20,20)
+        self.sidebar_size = 250
+        self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
+        self.board = Board(self.square_size, self.sidebar_size)
+        self.board.fill_board()
         self.right_sidebar = self.sidebar_size + self.board.shape[0] * self.square_size # X coordinate of the right sidebar
         self.header_font = pygame.font.Font('freesansbold.ttf', int(self.board.shape[1] * self.square_size * .03))
         self.text_font = pygame.font.Font('freesansbold.ttf', int(self.board.shape[1] * self.square_size * .015))
@@ -38,11 +55,14 @@ class Game:
         self.moves = []
         self.selected_piece = None
         # Text format: (coords, string, text_color, font)
-        self.activity_texts = [((45,0),"Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
-
+        self.activity_texts = [("Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
+        self.game_over = False
         self.window = pygame.display.set_mode(
             (self.board.shape[0] * self.square_size + self.sidebar_size * 2, 
-            self.board.shape[1] * self.square_size))
+            (self.board.shape[1] + 1) * self.square_size))
+        # Set window name and icon
+        pygame.display.set_caption("Chess")
+        pygame.display.set_icon(pygame.image.load('assets/WhiteRook.png'))
 
         #MAIN MENU COMPONENTS
         #Conecting Animation images
@@ -59,12 +79,21 @@ class Game:
             if (self.ready):
                 # Run the game
                 if self.messageAvailable: # check if theres a message available
-                    print(self.message) 
-                    self.activity_texts.append(((5, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
+                    print(self.message)
+                    # Process message for display. Array is 0 based but the actual board is not
+                    message = self.message[0].upper()
+                    message += str(8 - int(self.message[1]))
+                    message += " to "
+                    message += self.message[3].upper()
+                    message += str(8 - int(self.message[4]))
+                    # Display message on activity board
+                    self.activity_texts.append(("Opponent: " + message, (134,134,134), self.text_font))
                     # And processing with the message should go here
                     origin = ord(self.message[0]) - 97, int(self.message[1])
                     dest = ord(self.message[3]) - 97, int(self.message[4])
-                    self.board.get_space(*origin).move(self.board, *dest)
+                    piece = self.board.get_space(*origin)
+                    move_val = piece.move(self.board, *dest)
+                    self.handle_move(move_val)
                     self.messageAvailable = False # make sure to tell the game you have read the message
                     self.my_turn = True
 
@@ -76,12 +105,21 @@ class Game:
                         if self.my_turn:
                             coords = pygame.mouse.get_pos()
                             if self.left_sidebar < coords[0] < self.right_sidebar:
-                                square = self.coords_to_square(coords)
-
+                                if self.team == "black":
+                                    square = self.board.flip(*self.coords_to_square(coords))
+                                else:
+                                    square = self.coords_to_square(coords)
                                 if square in self.moves:
                                     move_str = chr(self.selected_piece.x + 97) + str(self.selected_piece.y) + " " + chr(square[0] + 97) + str(square[1])
+                                    message = move_str[0].upper()
+                                    message += str(8 - int(move_str[1]))
+                                    message += " to "
+                                    message += move_str[3].upper()
+                                    message += str(8 - int(move_str[4]))
+                                    self.activity_texts.append(("You: " + message, (134,134,134), self.text_font))
                                     self.ws.send(move_str)
-                                    self.selected_piece.move(self.board, *square)  
+                                    move_val = self.selected_piece.move(self.board, *square)
+                                    self.handle_move(move_val) 
                                     self.selected_piece = None
                                     self.moves = []
                                     self.my_turn = False
@@ -149,12 +187,37 @@ class Game:
     def draw(self):
         self.draw_board()
         text = self.header_font.render("Your Turn" if self.my_turn else "Opponents Turn", True, (255,0,0), self.white_color)
-        self.window.blit(text, (self.right_sidebar + 30,400))
-        for text in self.activity_texts:
-            self.draw_text(*text)
+        self.window.blit(text, (self.right_sidebar + 20,0))
+        y = len(self.activity_texts) * 30
+        if y - self.window.get_size()[1] >= 30:
+            self.activity_texts.pop(1)
+            self.activity_texts.pop(1)
+        for index,text in enumerate(self.activity_texts):
+            self.draw_text((0, index * 30), *text)
         for move in self.moves:
-            self.draw_square((150,180,255), *move)
-        self.board.draw(self.window)
+            if self.team == "black":
+                self.draw_square((150,180,255), *self.board.flip(*move))
+            else:
+                self.draw_square((150,180,255), *move)
+        if self.team == "black":
+            self.board.draw_rev(self.window)
+        else:
+            self.board.draw(self.window)
+        for index1, color in enumerate(self.captured):
+            for index2,piece in enumerate(self.captured[color]):
+                if len(self.captured[color][piece]) != 0:
+                    for index3, img in enumerate(self.captured[color][piece]):
+                        if index2 > 1:
+                            #Second row of pieces can be spaced by 80 pixels
+                            self.window.blit(img, (self.right_sidebar + (index2 - 2)*80 + index3*10, index1 * 200 + 200))
+                        else:
+                            #Second row of pieces must be spaced further so pawns have room to stack
+                            self.window.blit(img, (self.right_sidebar + index2*140 + index3*10, index1 * 200 + 100))
+        if self.game_over:
+            center = self.window.get_size()
+            coords = center[0] // 2 - self.game_over_text.get_rect().width //2 , center[1] //2
+            self.window.blit(self.game_over_text, coords)
+
         pygame.display.update()
     
     def draw_board(self):
@@ -168,6 +231,13 @@ class Game:
         #Draw the border lines on the left and right sidebar
         pygame.draw.line(self.window, (0,0,0), (self.left_sidebar,0), (self.left_sidebar, self.board.shape[1] * self.square_size), 2)
         pygame.draw.line(self.window, (0,0,0), (self.right_sidebar,0), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        pygame.draw.line(self.window, (0,0,0), (self.left_sidebar, self.board.shape[1] * self.square_size), (self.right_sidebar, self.board.shape[1] * self.square_size), 2)
+        for index,value in enumerate(self.vertical_label):
+            text = self.header_font.render(value, True, (0,0,0), self.white_color)
+            self.window.blit(text, (self.sidebar_size - 30, index * self.square_size + 40))
+        for index,value in enumerate(self.horizontal_label):
+            text = self.header_font.render(value, True, (0,0,0), self.white_color)
+            self.window.blit(text, (self.sidebar_size + (index * self.square_size) + 40, self.board.shape[1]*self.square_size + 30))
 
     def draw_text(self, coords, text, color, font):
         text = font.render(text, True, color, self.white_color)
@@ -179,6 +249,30 @@ class Game:
         corner = self.get_corner_coords(x,y)
         rect = (corner[0], corner[1], self.square_size, self.square_size)
         pygame.draw.rect(self.window, color, rect)
+
+    def handle_move(self, val):
+        if val[0] == 2:
+            self.end(val[1])
+            return
+        elif val[0] == 3:
+            #PAWN PROMOTION DO SOMETHING HERE
+            print("Ran!")
+            self.pawnPormotion()
+            val = val[1] # In case a pawn promotion and a capture happened
+        if val[0] == 1:
+            #There was a capture!
+            piece = val[1]
+            self.captured[piece.color][piece.name].append(piece.img)
+            return
+        return
+
+    def pawnPormotion(self):
+        self.add_piece(Rook("Black", 0, 4))
+
+    def end(self, attack):
+        self.ws.send("quit")
+        self.game_over_text = self.header_font.render(attack + " Wins!",True, (0,0,255))
+        self.game_over = True
 
     def get_corner_coords(self, x, y):
         return x * self.square_size + self.sidebar_size, y*self.square_size
@@ -200,8 +294,13 @@ class Game:
             self.team = incMessage.split(": ")[-1] #Grab the team this client is on
             print("You are on team: " + self.team)
             self.ready = True # Both players are in so we are ready to start
+            if self.team == "white":
+                self.horizontal_label = ["A","B","C","D","E","F","G","H"]
+                self.vertical_label = ["8", "7", "6", "5", "4", "3", "2", "1"]
+            else:
+                self.horizontal_label = ["H","G","F","E","D","C","B","A"]
+                self.vertical_label = ["1", "2", "3", "4", "5", "6", "7", "8"]
             self.my_turn = (self.team == "white")
-
             return 
         if "quit" == incMessage:
             print("Opponent Quit!")
