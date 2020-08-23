@@ -938,9 +938,7 @@ if __name__ == "__main__":
 
     # TEST 5.2: Pawn
     # new board
-    board.remove_piece(board.get_space(1, 3))
-    board.remove_piece(board.get_space(2, 5))
-    board.remove_piece(board.get_space(3, 4))
+    board = Board(100, 250)
     board.fill_board()
 
     print("\nPAWN TESTS...\n")
@@ -1000,10 +998,7 @@ if __name__ == "__main__":
 
     # TEST 5.3: Rook
     # new board
-    board.remove_piece(board.get_space(1, 3))
-    board.remove_piece(board.get_space(4, 3))
-    board.remove_piece(board.get_space(7, 5))
-    board.remove_piece(board.get_space(3, 5))
+    board = Board(100, 250)
     board.fill_board()
 
     print("\nROOK TESTS...\n")
@@ -1046,26 +1041,27 @@ if __name__ == "__main__":
 
     # TEST 5.4: Bishop
     # new board
-    board.remove_piece(board.get_space(5, 4))
+    board = Board(100, 250)
     board.fill_board()
 
     print("\nBISHOP TESTS...\n")
     board.print_board()
 
     print("\nTesting valid moves for Bishop:")
-    board.get_space(2, 7).move(board, 2, 4)
-    # valid moves: [(3, 3), (4, 2), (5, 1), (3, 5), (1, 5), (1, 3), (0, 2)]
-    print(board.get_space(2, 4).get_valid_moves(board))
+    # valid moves: []
+    print(board.get_space(2, 7).get_valid_moves(board))
+    board.get_space(3, 6).move(board, 3, 5)
+    # valid moves: [(3, 6), (4, 5), (5, 4), (6, 3), (7, 2)]
+    print(board.get_space(2, 7).get_valid_moves(board))
     board.print_board()
-    board.get_space(5, 0).move(board, 4, 2)
-    # valid moves: [(5, 3), (6, 4), (7, 5), (3, 3), (2, 4)]
-    print(board.get_space(4, 2).get_valid_moves(board))
+    board.get_space(2, 7).move(board, 7, 2)
+    # valid moves: [(6, 3), (5, 4), (4, 5), (3, 6), (2, 7), (6, 1)]
+    print(board.get_space(7, 2).get_valid_moves(board))
     board.print_board()
 
 
     print("\nTesting pawn capture for Bishop:")
-    board.get_space(2, 4).move(board, 2, 7)
-    capturedPiece = board.get_space(4, 2).move(board, 0, 6)[1].name
+    capturedPiece = board.get_space(7, 2).move(board, 6, 1)[1].name
     print(capturedPiece, "was captured") 
     board.print_board()
 
