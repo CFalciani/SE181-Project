@@ -113,12 +113,12 @@ class Board:
         attack = self.attacking_piece.color
         blockable = False
         if attack == "White":
-            defense = board.black_spaces
+            defense = self.black_spaces
             defender = self.black_king
         else:
-            defense = board.white_spaces
+            defense = self.white_spaces
             defender = self.white_king
-        check_king_moves = defender.get_valid_moves(board)
+        check_king_moves = defender.get_valid_moves(self)
         self.check_other_moves.append((self.attacking_piece.x, self.attacking_piece.y))
         if defense[self.attacking_piece.y][self.attacking_piece.x] == 1:
             blockable = True
@@ -153,9 +153,11 @@ class Board:
                     blockable = True
         if not check_king_moves and not blockable:
             self.checkmate(attack)
+            return [2,attack]
+        return [0]
 
     def checkmate(self, winner):
-        # CHECKMATE
+        print("Checkmate")
         pass
 
 
@@ -203,6 +205,7 @@ class Piece(ABC):
 
     # Moves the piece to the specified space
     def move(self, board, new_x, new_y):
+        captured = False
         board.check = False
         board.white_spaces = np.zeros((8, 8))
         board.black_spaces = np.zeros((8, 8))
@@ -213,6 +216,7 @@ class Piece(ABC):
             board.en_passant = None
         other_piece = board.get_space(new_x, new_y)
         if other_piece is not None:
+            captured = True
             board.remove_piece(other_piece)
         board.board[self.y][self.x] = None
         board.board[new_y][new_x] = self
@@ -228,7 +232,10 @@ class Piece(ABC):
         board.black_king.get_valid_moves(board)
         board.white_king.get_valid_moves(board)
         if board.check:
-            board.get_check_moves()
+            return [*board.get_check_moves()]
+        if captured:
+            return [1, other_piece]
+        return [0]
 
     def __str__(self):
         return "%s %s" % (self.color, self.name)
@@ -451,14 +458,15 @@ class Pawn(Piece):
     def move(self, board, new_x, new_y):
         if new_x != self.x and board.get_space(new_x, new_y) is None:
             board.remove_piece(board.get_space(new_x, new_y - self.direction))
-        super().move(board, new_x, new_y)
+        return_value = super().move(board, new_x, new_y)
         if not self.moved and (new_y == 3 or new_y == 4):
             self.en_passant = True
             board.en_passant = self
         self.moved = True
         if new_y == 0 or new_y == 7:
-            # Implement promotion here
-            pass
+            return [3, return_value]
+        else:
+            return return_value
 
 
 class Rook(Piece):
@@ -549,8 +557,9 @@ class Rook(Piece):
         return super().get_valid_moves(board, output)
 
     def move(self, board, new_x, new_y):
-        super().move(board, new_x, new_y)
+        return_value = super().move(board, new_x, new_y)
         self.moved = True
+        return return_value
 
 
 class Bishop(Piece):
@@ -864,8 +873,9 @@ class King(Piece):
                 board.board[self.y][5] = rook
                 rook.x = 5
                 rook.y = self.y
-        super().move(board, new_x, new_y)
+        return_value = super().move(board, new_x, new_y)
         self.moved = True
+        return return_value
 
 
 # Testing
