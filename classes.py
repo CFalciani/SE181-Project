@@ -230,7 +230,6 @@ class Piece(ABC):
                 board.black_pieces[i].get_valid_moves(board)
         board.white_king.get_valid_moves(board)
         board.black_king.get_valid_moves(board)
-        board.white_king.get_valid_moves(board)
         if board.check:
             return [*board.get_check_moves()]
         if captured:
@@ -759,7 +758,7 @@ class King(Piece):
         new_x = self.x
         new_y = self.y - 1
         if new_y >= 0:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -770,7 +769,7 @@ class King(Piece):
         new_x = self.x + 1
         new_y = self.y - 1
         if new_x < board.shape[1] and new_y >= 0:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -781,7 +780,7 @@ class King(Piece):
         new_x = self.x + 1
         new_y = self.y
         if new_x < board.shape[1]:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -792,7 +791,7 @@ class King(Piece):
         new_x = self.x + 1
         new_y = self.y + 1
         if new_x < board.shape[1] and new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -803,7 +802,7 @@ class King(Piece):
         new_x = self.x
         new_y = self.y + 1
         if new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -814,7 +813,7 @@ class King(Piece):
         new_x = self.x - 1
         new_y = self.y + 1
         if new_x >= 0 and new_y < board.shape[0]:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -825,7 +824,7 @@ class King(Piece):
         new_x = self.x - 1
         new_y = self.y
         if new_x >= 0:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -836,7 +835,7 @@ class King(Piece):
         new_x = self.x - 1
         new_y = self.y - 1
         if new_x >= 0 and new_y >= 0:
-            if blocked_spaces[new_y][new_x] != 1:
+            if blocked_spaces[new_y][new_x] == 0:
                 space = board.get_space(new_x, new_y)
                 if space is None or space.color != self.color:
                     output.append((new_x, new_y))
@@ -887,7 +886,7 @@ if __name__ == "__main__":
     # TEST 5.1: Queen
     board.get_space(3, 6).move(board, 3, 4)
     board.get_space(3, 7).move(board, 3, 5)
-    board.print_board()   
+    board.print_board()
     # White Queen at D3
     # Valid Moves:  [(4, 4), (5, 3), (6, 2), (7, 1), (4, 5), (5, 5), (6, 5), (7, 5), (3, 6), (3, 7), (2, 5), (1, 5), (0, 5), (2, 4), (1, 3), (0, 2)]
     print(board.get_space(3, 5).get_valid_moves(board))
@@ -911,8 +910,9 @@ if __name__ == "__main__":
     board.remove_piece(board.get_space(3, 4))
     board.fill_board()
     board.print_board()
+    print(board.get_space(0, 0).get_valid_moves(board))
 
-    # move black pawn 2 spaces forward and white pawn 1 space 
+    # move black pawn 2 spaces forward and white pawn 1 space
     board.get_space(3, 6).move(board, 3, 5)
     board.get_space(3, 1).move(board, 3, 3)
 
@@ -928,10 +928,9 @@ if __name__ == "__main__":
 
     # test diagonal pawn capture
     # white pawn at e3, black pawn at d4
-    # valid moves: [(3,3)] 
+    # valid moves: [(3,3)]
     print(board.get_space(4, 4).get_valid_moves(board))
     # Move white pawn to d4 to test pawn capture
     capturedPiece = board.get_space(4, 4).move(board, 3, 3)[1].name
     print(capturedPiece, "was captured")
     board.print_board()
-    
