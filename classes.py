@@ -164,6 +164,7 @@ class Board:
 class Piece(ABC):
     @abstractmethod
     def __init__(self, color, name, x, y):
+        self.direction = 0
         self.x = x
         self.y = y
         self.color = color
@@ -204,7 +205,7 @@ class Piece(ABC):
             return output
 
     # Moves the piece to the specified space
-    def move(self, board, new_x, new_y):
+    def move(self, board, new_x, new_y, en_passant=False):
         captured = False
         board.check = False
         board.white_spaces = np.zeros((8, 8))
@@ -214,7 +215,10 @@ class Piece(ABC):
         if board.en_passant_counter == 0 and board.en_passant is not None:
             board.en_passant.en_passant = False
             board.en_passant = None
-        other_piece = board.get_space(new_x, new_y)
+        if en_passant:
+            other_piece = board.get_space(new_x, new_y - self.direction)
+        else:
+            other_piece = board.get_space(new_x, new_y)
         if other_piece is not None:
             captured = True
             board.remove_piece(other_piece)
@@ -454,10 +458,11 @@ class Pawn(Piece):
 
         return super().get_valid_moves(board, output)
 
-    def move(self, board, new_x, new_y):
+    def move(self, board, new_x, new_y, en_passant=False):
         if new_x != self.x and board.get_space(new_x, new_y) is None:
-            board.remove_piece(board.get_space(new_x, new_y - self.direction))
-        return_value = super().move(board, new_x, new_y)
+            return_value = super().move(board, new_x, new_y, True)
+        else:
+            return_value = super().move(board, new_x, new_y)
         if not self.moved and (new_y == 3 or new_y == 4):
             self.en_passant = True
             board.en_passant = self
@@ -555,7 +560,7 @@ class Rook(Piece):
 
         return super().get_valid_moves(board, output)
 
-    def move(self, board, new_x, new_y):
+    def move(self, board, new_x, new_y, en_passant=False):
         return_value = super().move(board, new_x, new_y)
         self.moved = True
         return return_value
@@ -858,7 +863,7 @@ class King(Piece):
 
         return super().get_valid_moves(board, output)
 
-    def move(self, board, new_x, new_y):
+    def move(self, board, new_x, new_y, en_passant=False):
         if not self.moved:
             if new_x == 2:
                 rook = board.get_space(0, self.y)
