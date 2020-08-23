@@ -894,6 +894,7 @@ if __name__ == "__main__":
     board.get_space(3, 6).move(board, 3, 4)
     board.get_space(3, 7).move(board, 3, 5)
     board.print_board()
+
     print("\nTesting valid moves for White Queen:")
     # White Queen at D3
     # Valid Moves:  [(4, 4), (5, 3), (6, 2), (7, 1), (4, 5), (5, 5), (6, 5), (7, 5), (3, 6), (3, 7), (2, 5), (1, 5), (0, 5), (2, 4), (1, 3), (0, 2)]
@@ -912,23 +913,43 @@ if __name__ == "__main__":
     capturedPiece = board.get_space(3, 5).move(board, 7, 1)[1].name
     print(capturedPiece, "was captured")
     board.print_board()
+
+    print("\nTesting queen rook capture:")
+    board.get_space(7, 0).move(board, 6, 2)
+    capturedPiece = board.get_space(7, 1).move(board, 6, 2)[1].name
+    print(capturedPiece, "was captured")
+    board.print_board()
+
+    print("\nTesting queen bishop capture:")
+    board.get_space(2, 0).move(board, 2, 2)
+    capturedPiece = board.get_space(6, 2).move(board, 2, 2)[1].name
+    print(capturedPiece, "was captured")
+    board.print_board()
+
+    print("\nTesting queen knight capture:")
+    board.get_space(1, 0).move(board, 1, 3)
+    capturedPiece = board.get_space(2, 2).move(board, 1, 3)[1].name
+    print(capturedPiece, "was captured")
+    board.print_board()
+
     print("END OF QUEEN TESTS\n\n")
 
 
 
     # TEST 5.2: Pawn
     # new board
+    board.remove_piece(board.get_space(1, 3))
     board.remove_piece(board.get_space(2, 5))
     board.remove_piece(board.get_space(3, 4))
     board.fill_board()
+
     print("\nPAWN TESTS...\n")
     board.print_board()
-    print("\nTesting initial valid moves for Pawn:")
 
+    print("\nTesting valid moves for Pawn:")
     # move black pawn 2 spaces forward and white pawn 1 space
     board.get_space(3, 6).move(board, 3, 5)
     board.get_space(3, 1).move(board, 3, 3)
-
     # White pawn at e1
     # valid moves: [(4,5), (4,4)]
     print(board.get_space(4, 6).get_valid_moves(board))
@@ -939,7 +960,7 @@ if __name__ == "__main__":
     board.get_space(4, 1).move(board, 4, 3)
     board.print_board()
 
-    # test diagonal pawn capture
+    
     # white pawn at e3, black pawn at d4
     # valid moves: [(3,3)]
     print("\nTesting pawn capture:")
@@ -955,21 +976,98 @@ if __name__ == "__main__":
     board.print_board()
     print(board.get_space(3, 3).get_valid_moves(board))
     # Move white pawn to c5 to test en passant pawn capture
-    print(board.get_space(3, 3).move(board, 2, 2))
-    # print(capturedPiece, "was captured") 
+    capturedPiece = board.get_space(3, 3).move(board, 2, 2)[1].name
+    print(capturedPiece, "was captured") 
     board.print_board()
-
     # Move black pawn to g4 to test en passant pawn capture 
     board.get_space(6, 1).move(board, 6, 4)
-    board.get_space(7, 7).move(board,7, 4)
+    board.get_space(7, 6).move(board,7, 4)
     # valid moves: [(6, 5), (7,5)]
     print(board.get_space(6, 4).get_valid_moves(board))
-    print(board.get_space(6, 4).move(board, 7, 5))
-    # print(capturedPiece, "was captured") 
+    capturedPiece = board.get_space(6, 4).move(board, 7, 5)[1].name
+    print(capturedPiece, "was captured") 
     board.print_board()
 
 
-    # test pawn promotion 
+    # test pawn promotion
+    print("\nTesting pawn promotion:")
     board.get_space(2, 0).move(board, 1, 3)
-    # should return (3, [0])
+    # should return (3, [0]) 
     print(board.get_space(2, 2).move(board, 2, 0))
+    board.print_board()
+    print("END OF PAWN TESTS\n\n")
+
+
+    # TEST 5.3: Rook
+    # new board
+    board.remove_piece(board.get_space(1, 3))
+    board.remove_piece(board.get_space(4, 3))
+    board.remove_piece(board.get_space(7, 5))
+    board.remove_piece(board.get_space(3, 5))
+    board.fill_board()
+
+    print("\nROOK TESTS...\n")
+    board.print_board()
+
+    print("\nTesting valid moves for Rook:")
+    board.get_space(7, 7).move(board, 6, 4)
+    # valid moves: [(6, 3), (6, 2), (6, 1), (7, 4), (6, 5), (5, 4), (4, 4), (3, 4), (2, 4), (1, 4), (0, 4)]
+    print(board.get_space(6, 4).get_valid_moves(board))
+    board.print_board()
+    board.get_space(5, 6).move(board, 5, 4)
+    # valid moves: [(6, 3), (6, 2), (6, 1), (7, 4), (6, 5)]
+    print(board.get_space(6, 4).get_valid_moves(board))
+    board.print_board()
+
+    print("\nTesting pawn capture for Rook:")
+    capturedPiece = board.get_space(6, 4).move(board, 6, 1)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting rook capture for Rook:")
+    board.get_space(7, 0).move(board, 6, 3)
+    capturedPiece = board.get_space(6, 1).move(board, 6, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting knight capture for Rook:")
+    capturedPiece = board.get_space(6, 3).move(board, 6, 0)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting bishop capture for Rook:")
+    print(board.get_space(6, 0).move(board, 5, 0))
+    #capturedPiece = board.get_space(6, 0).move(board, 5, 0)[1].name
+   # print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("END OF ROOK TESTS\n\n")
+
+
+    # TEST 5.4: Bishop
+    # new board
+    board.remove_piece(board.get_space(5, 4))
+    board.fill_board()
+
+    print("\nBISHOP TESTS...\n")
+    board.print_board()
+
+    print("\nTesting valid moves for Bishop:")
+    board.get_space(2, 7).move(board, 2, 4)
+    # valid moves: [(3, 3), (4, 2), (5, 1), (3, 5), (1, 5), (1, 3), (0, 2)]
+    print(board.get_space(2, 4).get_valid_moves(board))
+    board.print_board()
+    board.get_space(5, 0).move(board, 4, 2)
+    # valid moves: [(5, 3), (6, 4), (7, 5), (3, 3), (2, 4)]
+    print(board.get_space(4, 2).get_valid_moves(board))
+    board.print_board()
+
+
+    print("\nTesting pawn capture for Bishop:")
+    board.get_space(2, 4).move(board, 2, 7)
+    capturedPiece = board.get_space(4, 2).move(board, 0, 6)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    
+    
