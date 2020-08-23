@@ -931,6 +931,7 @@ if __name__ == "__main__":
     print(capturedPiece, "was captured")
     board.print_board()
 
+
     print("END OF QUEEN TESTS\n\n")
 
 
@@ -992,7 +993,35 @@ if __name__ == "__main__":
     # should return (3, [0]) 
     print(board.get_space(2, 2).move(board, 2, 0))
     board.print_board()
+
+
+    print("\nTesting rook capture for Pawn:")
+    board.get_space(7, 7).move(board, 5, 4)
+    capturedPiece = board.get_space(4, 3).move(board, 5, 4)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting bishop capture for Pawn:")
+    board.get_space(5, 0).move(board, 4, 4)
+    capturedPiece = board.get_space(3, 5).move(board, 4, 4)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting knight capture for Pawn:")
+    board.get_space(6, 7).move(board, 6, 5)
+    capturedPiece = board.get_space(5, 4).move(board, 6, 5)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting queen capture for Pawn:")
+    board.get_space(3, 0).move(board, 2, 5)
+    capturedPiece = board.get_space(1, 6).move(board, 2, 5)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
     print("END OF PAWN TESTS\n\n")
+
+
 
 
     # TEST 5.3: Rook
@@ -1031,6 +1060,13 @@ if __name__ == "__main__":
 
     print("\nTesting bishop capture for Rook:")
     capturedPiece = board.get_space(6, 0).move(board, 5, 0)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting queen capture for Rook:")
+    board.get_space(0, 7).move(board, 0, 4)
+    board.get_space(3, 0).move(board, 3, 4)
+    capturedPiece = board.get_space(0, 4).move(board, 3, 4)[1].name
     print(capturedPiece, "was captured") 
     board.print_board()
 
@@ -1080,6 +1116,12 @@ if __name__ == "__main__":
     print(capturedPiece, "was captured") 
     board.print_board()
 
+    print("\nTesting queen capture for Bishop:")
+    board.get_space(3, 0).move(board, 6, 1)
+    capturedPiece = board.get_space(5, 0).move(board, 6, 1)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
     print("END OF BISHOP TESTS\n\n")
 
 
@@ -1119,6 +1161,12 @@ if __name__ == "__main__":
 
     print("\nTesting knight capture for Knight:")
     capturedPiece = board.get_space(5, 2).move(board, 7, 3)[1].name
+    print(capturedPiece, "was captured") 
+    board.print_board()
+
+    print("\nTesting queen capture for Knight:")
+    board.get_space(3, 7).move(board, 6, 5)
+    capturedPiece = board.get_space(7, 3).move(board, 6, 5)[1].name
     print(capturedPiece, "was captured") 
     board.print_board()
 
@@ -1177,3 +1225,6 @@ if __name__ == "__main__":
 
 
     print("END OF KING TESTS\n\n")
+
+
+    
