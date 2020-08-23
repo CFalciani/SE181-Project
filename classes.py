@@ -107,7 +107,7 @@ class Board:
                 # 7 - x and 7 - y gives us the reversed coords
                 window.blit(piece.img, ((7-i) * self.square_size + self.sidebar + 10, (7-j) * self.square_size + 10))
 
-    def get_check_moves(self):
+    def get_check_moves(self, other_piece):
         self.check_other_moves = []
         attacker = self.attacking_piece.name
         attack = self.attacking_piece.color
@@ -152,13 +152,12 @@ class Board:
                 if defense[path_space[1]][path_space[0]] == 1:
                     blockable = True
         if not check_king_moves and not blockable:
-            self.checkmate(attack)
-            return [2,attack]
-        return [0]
-
-    def checkmate(self, winner):
-        print("Checkmate")
-        pass
+            print("Checkmate")
+            return [2, attack]
+        if other_piece is None:
+            return [0]
+        else:
+            return [1, other_piece]
 
 
 class Piece(ABC):
@@ -235,7 +234,7 @@ class Piece(ABC):
         board.white_king.get_valid_moves(board)
         board.black_king.get_valid_moves(board)
         if board.check:
-            return [*board.get_check_moves()]
+            return [*board.get_check_moves(other_piece)]
         if captured:
             return [1, other_piece]
         return [0]
