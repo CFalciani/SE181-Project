@@ -11,7 +11,7 @@ class Game:
     def __init__(self):
         pygame.init()
         self.square_size = 100
-        self.white_color = (240,240,240)
+        self.white_color = (255,255,255)
         self.black_color = (20,20,20)
         self.sidebar_size = 250
         self.left_sidebar = self.sidebar_size # X coordinate of the left side bar (it starts at 0 and ends at this point)
@@ -38,7 +38,7 @@ class Game:
         self.moves = []
         self.selected_piece = None
         # Text format: (coords, string, text_color, font)
-        self.activity_texts = [((0,0),"Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
+        self.activity_texts = [((45,0),"Activity Log", (134,134,134), self.header_font)] # Append to this list to add text to the screen
 
         self.window = pygame.display.set_mode(
             (self.board.shape[0] * self.square_size + self.sidebar_size * 2, 
@@ -53,12 +53,14 @@ class Game:
             self.chessAnimation.append(pygame.image.load("assets/chessAnimation/frame-" + str(i) + ".png"))
         self.frame = 0
 
+        self.background = pygame.image.load("assets/background.png")
+
         while 1:
             if (self.ready):
                 # Run the game
                 if self.messageAvailable: # check if theres a message available
                     print(self.message) 
-                    self.activity_texts.append(((0, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
+                    self.activity_texts.append(((5, self.activity_texts[-1][0][1] + 30), "Opponent: " + self.message, (134,134,134), self.text_font))
                     # And processing with the message should go here
                     origin = ord(self.message[0]) - 97, int(self.message[1])
                     dest = ord(self.message[3]) - 97, int(self.message[4])
@@ -120,15 +122,23 @@ class Game:
 
     def drawMainMenu(self):
         self.window.fill(self.white_color)
+        self.window.blit(self.background, (0, 0))
 
         #Text
         loadingText = self.text_font.render("Waiting for other player to connect...", True, (255,0,0), self.white_color)
-        self.window.blit(loadingText, (550, 340))
+        self.window.blit(loadingText, (550, 690))
+        pressText = self.text_font.render("Press", True, (0,0,0), self.white_color)
+        self.window.blit(pressText, (636, 725))
+        escText = self.text_font.render("[ Esc ]", True, (0,0,0), self.white_color)
+        self.window.blit(escText, (635, 740))
+        quitText = self.text_font.render("to quit", True, (0,0,0), self.white_color)
+        self.window.blit(quitText, (635, 755))
 
+        
         #Title & Connecting animation
         pygame.time.delay(25)
-        self.window.blit(self.loadingAnimation[self.frame], (540, 400))
-        self.window.blit(self.chessAnimation[self.frame], (505, 150))
+        self.window.blit(self.loadingAnimation[self.frame], (550, 490))
+        self.window.blit(self.chessAnimation[self.frame], (505, 260))
         self.frame += 1
         if (self.frame > 30):
             self.frame = 0
@@ -139,7 +149,7 @@ class Game:
     def draw(self):
         self.draw_board()
         text = self.header_font.render("Your Turn" if self.my_turn else "Opponents Turn", True, (255,0,0), self.white_color)
-        self.window.blit(text, (self.right_sidebar + 20,0))
+        self.window.blit(text, (self.right_sidebar + 30,400))
         for text in self.activity_texts:
             self.draw_text(*text)
         for move in self.moves:
