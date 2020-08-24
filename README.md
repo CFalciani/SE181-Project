@@ -8,6 +8,7 @@ Requires
     - websocket_client
     - numpy
     - pygame
+    - pygame_menu
 
 To install, download the source code and run
 
