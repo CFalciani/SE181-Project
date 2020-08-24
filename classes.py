@@ -204,7 +204,7 @@ class Piece(ABC):
             return output
 
     # Moves the piece to the specified space
-    def move(self, board, new_x, new_y, en_passant=False):
+    def move(self, board, new_x, new_y, en_passant=False, promotion=False):
         captured = False
         board.check = False
         board.white_spaces = np.zeros((8, 8))
@@ -216,6 +216,8 @@ class Piece(ABC):
             board.en_passant = None
         if en_passant:
             other_piece = board.get_space(new_x, new_y - self.direction)
+        elif promotion:
+            other_piece = None
         else:
             other_piece = board.get_space(new_x, new_y)
         if other_piece is not None:
@@ -237,6 +239,10 @@ class Piece(ABC):
             return [*board.get_check_moves(other_piece)]
         if captured:
             return [1, other_piece]
+        if promotion:
+            other_piece = board.get_space(self.x, self.y)
+            board.remove_piece(other_piece)
+        
         return [0]
 
     def __str__(self):
@@ -426,14 +432,14 @@ class Pawn(Piece):
 
         new_x = self.x
         new_y = self.y + self.direction
-        if board.get_space(new_x, new_y) is None:
+        if 0 <= new_y < board.shape[1] and board.get_space(new_x, new_y) is None:
             output.append((new_x, new_y))
             if not self.moved and board.get_space(new_x, new_y + self.direction) is None:
                 output.append((new_x, new_y + self.direction))
 
         new_x = self.x - 1
         new_y = self.y + self.direction
-        if new_x >= 0:
+        if 0 <= new_y < board.shape[1] and  new_x >= 0:
             space = board.get_space(new_x, new_y)
             if space is not None and space.color != self.color:
                 output.append((new_x, new_y))
@@ -442,7 +448,7 @@ class Pawn(Piece):
 
         new_x = self.x + 1
         new_y = self.y + self.direction
-        if new_x < board.shape[1]:
+        if 0 <= new_y < board.shape[1] and  new_x < board.shape[1]:
             space = board.get_space(new_x, new_y)
             if space is not None and space.color != self.color:
                 output.append((new_x, new_y))
@@ -459,17 +465,19 @@ class Pawn(Piece):
 
     def move(self, board, new_x, new_y, en_passant=False):
         if new_x != self.x and board.get_space(new_x, new_y) is None:
-            return_value = super().move(board, new_x, new_y, True)
+            return_value = super().move(board, new_x, new_y, True, False)
+        elif new_y == 7 or new_y == 0:
+            return_value = super().move(board, new_x, new_y, False, True)
+            self.moved = True
+            return [3, return_value, self.color, self.x, self.y]
         else:
             return_value = super().move(board, new_x, new_y)
         if not self.moved and (new_y == 3 or new_y == 4):
             self.en_passant = True
             board.en_passant = self
         self.moved = True
-        if new_y == 0 or new_y == 7:
-            return [3, return_value]
-        else:
-            return return_value
+        
+        return return_value
 
 
 class Rook(Piece):
