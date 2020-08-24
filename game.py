@@ -86,23 +86,46 @@ class Game:
             if (self.ready):
                 # Run the game
                 if self.messageAvailable: # check if theres a message available
-                    print(self.message)
-                    # Process message for display. Array is 0 based but the actual board is not
-                    message = self.message[0].upper()
-                    message += str(8 - int(self.message[1]))
-                    message += " to "
-                    message += self.message[3].upper()
-                    message += str(8 - int(self.message[4]))
-                    # Display message on activity board
-                    self.activity_texts.append(("Opponent: " + message, (134,134,134), self.text_font))
-                    # And processing with the message should go here
-                    origin = ord(self.message[0]) - 97, int(self.message[1])
-                    dest = ord(self.message[3]) - 97, int(self.message[4])
-                    piece = self.board.get_space(*origin)
-                    move_val = piece.move(self.board, *dest)
-                    self.handle_move(move_val)
-                    self.messageAvailable = False # make sure to tell the game you have read the message
-                    self.my_turn = True
+                    if self.message.split()[0] == "Black":
+                        if self.message.split()[1] == "Queen":
+                            self.board.add_piece(Queen("Black", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Bishop":
+                            self.board.add_piece(Bishop("Black", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Knight":
+                            self.board.add_piece(Knight("Black", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Rook":
+                            self.board.add_piece(Rook("Black", int(self.message.split()[2]), int(self.message.split()[3])))
+                        
+                        self.messageAvailable = False # make sure to tell the game you have read the message
+                    elif self.message.split()[0] == "White":
+                        if self.message.split()[1] == "Queen":
+                            self.board.add_piece(Queen("White", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Bishop":
+                            self.board.add_piece(Bishop("White", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Knight":
+                            self.board.add_piece(Knight("White", int(self.message.split()[2]), int(self.message.split()[3])))
+                        elif self.message.split()[1] == "Rook":
+                            self.board.add_piece(Rook("White", int(self.message.split()[2]), int(self.message.split()[3])))
+                        
+                        self.messageAvailable = False # make sure to tell the game you have read the message
+                    else:
+                        print(self.message)
+                        # Process message for display. Array is 0 based but the actual board is not
+                        message = self.message[0].upper()
+                        message += str(8 - int(self.message[1]))
+                        message += " to "
+                        message += self.message[3].upper()
+                        message += str(8 - int(self.message[4]))
+                        # Display message on activity board
+                        self.activity_texts.append(("Opponent: " + message, (134,134,134), self.text_font))
+                        # And processing with the message should go here
+                        origin = ord(self.message[0]) - 97, int(self.message[1])
+                        dest = ord(self.message[3]) - 97, int(self.message[4])
+                        piece = self.board.get_space(*origin)
+                        move_val = piece.move(self.board, *dest)
+                        self.handle_move(move_val)
+                        self.messageAvailable = False # make sure to tell the game you have read the message
+                        self.my_turn = True
 
                 self.draw()
 
@@ -282,32 +305,49 @@ class Game:
     def promotionQueen(self):
         if self.val[2] == 'Black': 
             self.board.add_piece(Queen("Black", self.val[3], self.val[4]))
+            promMsg = "Black Queen " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         else:
             self.board.add_piece(Queen("White", self.val[3], self.val[4]))
+            promMsg = "White Queen " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         self.menu.disable()
         pass
 
     def promotionBishop(self):
         if self.val[2] == 'Black': 
             self.board.add_piece(Bishop("Black", self.val[3], self.val[4]))
+            promMsg = "Black Bishop " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         else:
             self.board.add_piece(Bishop("White", self.val[3], self.val[4]))
+            promMsg = "White Bishop " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
+
         self.menu.disable()
         pass
 
     def promotionKnight(self):
         if self.val[2] == 'Black': 
             self.board.add_piece(Knight("Black", self.val[3], self.val[4]))
+            promMsg = "Black Knight " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         else:
             self.board.add_piece(Knight("White", self.val[3], self.val[4]))
+            promMsg = "White Knight " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         self.menu.disable()
         pass
 
     def promotionRook(self):
         if self.val[2] == 'Black': 
             self.board.add_piece(Rook("Black", self.val[3], self.val[4]))
+            promMsg = "Black Rook " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         else:
             self.board.add_piece(Rook("White", self.val[3], self.val[4]))
+            promMsg = "White Knight " + str(self.val[3]) + " " + str(self.val[4])
+            self.ws.send(promMsg)
         self.menu.disable()
         pass
         
