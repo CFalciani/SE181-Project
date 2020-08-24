@@ -1,5 +1,6 @@
 from classes import *
 import pygame
+import pygame_menu
 import websocket
 try:
     import thread
@@ -72,7 +73,15 @@ class Game:
             self.loadingAnimation.append(pygame.image.load("assets/connectingAnimation/frame-" + str(i) + ".png"))
             self.chessAnimation.append(pygame.image.load("assets/chessAnimation/frame-" + str(i) + ".png"))
         self.frame = 0
+        self.background = pygame.image.load("assets/background.png")
 
+        #PROMOTION COMPONENTS
+        self.menu = pygame_menu.Menu(300, 400, 'Choose Piece', theme=pygame_menu.themes.THEME_BLUE)
+        self.menu.add_button('Add Queen', self.promotionQueen)
+        self.menu.add_button('Add Bishop', self.promotionBishop)
+        self.menu.add_button('Add Knight', self.promotionKnight)
+        self.menu.add_button('Add Rook', self.promotionRook)
+        
         while 1:
             if (self.ready):
                 # Run the game
@@ -158,15 +167,23 @@ class Game:
 
     def drawMainMenu(self):
         self.window.fill(self.white_color)
+        self.window.blit(self.background, (0, 0))
 
         #Text
         loadingText = self.text_font.render("Waiting for other player to connect...", True, (255,0,0), self.white_color)
-        self.window.blit(loadingText, (550, 340))
+        self.window.blit(loadingText, (550, 680))
+        pressText = self.text_font.render("Press", True, (0,0,0), self.white_color)
+        self.window.blit(pressText, (636, 725))
+        escText = self.text_font.render("[ Esc ]", True, (0,0,0), self.white_color)
+        self.window.blit(escText, (635, 740))
+        quitText = self.text_font.render("to quit", True, (0,0,0), self.white_color)
+        self.window.blit(quitText, (635, 755))
 
+        
         #Title & Connecting animation
         pygame.time.delay(25)
-        self.window.blit(self.loadingAnimation[self.frame], (540, 400))
-        self.window.blit(self.chessAnimation[self.frame], (505, 150))
+        self.window.blit(self.loadingAnimation[self.frame], (550, 480))
+        self.window.blit(self.chessAnimation[self.frame], (505, 260))
         self.frame += 1
         if (self.frame > 30):
             self.frame = 0
@@ -246,6 +263,7 @@ class Game:
             return
         elif val[0] == 3:
             #PAWN PROMOTION DO SOMETHING HERE
+            self.pawnPromotion(val)
             val = val[1] # In case a pawn promotion and a capture happened
         if val[0] == 1:
             #There was a capture!
@@ -253,6 +271,46 @@ class Game:
             self.captured[piece.color][piece.name].append(piece.img)
             return
         return
+
+    def pawnPromotion(self, val):
+        self.val = val
+        if val[2] == 'Black' and self.team == "black":
+            self.menu.mainloop(self.window)
+        elif val[2] == 'White' and self.team == "white":
+            self.menu.mainloop(self.window)
+
+    def promotionQueen(self):
+        if self.val[2] == 'Black': 
+            self.board.add_piece(Queen("Black", self.val[3], self.val[4]))
+        else:
+            self.board.add_piece(Queen("White", self.val[3], self.val[4]))
+        self.menu.disable()
+        pass
+
+    def promotionBishop(self):
+        if self.val[2] == 'Black': 
+            self.board.add_piece(Bishop("Black", self.val[3], self.val[4]))
+        else:
+            self.board.add_piece(Bishop("White", self.val[3], self.val[4]))
+        self.menu.disable()
+        pass
+
+    def promotionKnight(self):
+        if self.val[2] == 'Black': 
+            self.board.add_piece(Knight("Black", self.val[3], self.val[4]))
+        else:
+            self.board.add_piece(Knight("White", self.val[3], self.val[4]))
+        self.menu.disable()
+        pass
+
+    def promotionRook(self):
+        if self.val[2] == 'Black': 
+            self.board.add_piece(Rook("Black", self.val[3], self.val[4]))
+        else:
+            self.board.add_piece(Rook("White", self.val[3], self.val[4]))
+        self.menu.disable()
+        pass
+        
 
     def end(self, attack):
         self.ws.send("quit")
