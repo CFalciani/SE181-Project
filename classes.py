@@ -433,7 +433,7 @@ class Pawn(Piece):
 
         new_x = self.x - 1
         new_y = self.y + self.direction
-        if 0 <= new_y < board.shape[1] and  new_x >= 0:
+        if 0 <= new_y < board.shape[1] and new_x >= 0:
             space = board.get_space(new_x, new_y)
             if space is not None and space.color != self.color:
                 output.append((new_x, new_y))
@@ -442,7 +442,7 @@ class Pawn(Piece):
 
         new_x = self.x + 1
         new_y = self.y + self.direction
-        if 0 <= new_y < board.shape[1] and  new_x < board.shape[1]:
+        if 0 <= new_y < board.shape[1] and new_x < board.shape[1]:
             space = board.get_space(new_x, new_y)
             if space is not None and space.color != self.color:
                 output.append((new_x, new_y))
