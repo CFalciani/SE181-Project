@@ -164,29 +164,27 @@ class Game:
                             else:
                                 self.selected_piece = None
                                 self.moves = []
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            # Press escape to quit
-                            try:
-                                self.ws.send("quit")
-                            except websocket._exceptions.WebSocketConnectionClosedException:
-                                pass
-                            pygame.quit()
-                            quit()
+                    if (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE) or event.type == pygame.QUIT:
+                        # Press escape to quit
+                        try:
+                            self.ws.send("quit")
+                        except websocket._exceptions.WebSocketConnectionClosedException:
+                            pass
+                        pygame.quit()
+                        quit()
             #Main Menu               
             else:
                 self.drawMainMenu()
                 
                 for event in pygame.event.get():
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            # Press escape to quit
-                            try:
-                                self.ws.send("quit")
-                            except websocket._exceptions.WebSocketConnectionClosedException:
-                                pass
-                            pygame.quit()
-                            quit()
+                    if (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE) or event.type == pygame.QUIT:
+                        # Press escape to quit
+                        try:
+                            self.ws.send("quit")
+                        except websocket._exceptions.WebSocketConnectionClosedException:
+                            pass
+                        pygame.quit()
+                        quit()
 
     def drawMainMenu(self):
         self.window.fill(self.white_color)
