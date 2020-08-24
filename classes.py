@@ -474,7 +474,6 @@ class Pawn(Piece):
             return_value = super().move(board, new_x, new_y, True, False)
         elif new_y == 7 or new_y == 0:
             return_value = super().move(board, new_x, new_y, False, True)
-            self.moved = True
             return [3, return_value, self.color, self.x, self.y]
         else:
             return_value = super().move(board, new_x, new_y)

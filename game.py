@@ -176,7 +176,6 @@ class Game:
             #Main Menu               
             else:
                 self.drawMainMenu()
-                
                 for event in pygame.event.get():
                     if event.type == pygame.KEYDOWN:
                         if event.key == pygame.K_ESCAPE:
@@ -296,9 +295,11 @@ class Game:
         return
 
     def pawnPromotion(self, val):
+        self.menu.enable()
         self.val = val
         if val[2] == 'Black' and self.team == "black":
             self.menu.mainloop(self.window)
+            
         elif val[2] == 'White' and self.team == "white":
             self.menu.mainloop(self.window)
 
@@ -307,10 +308,12 @@ class Game:
             self.board.add_piece(Queen("Black", self.val[3], self.val[4]))
             promMsg = "Black Queen " + str(self.val[3]) + " " + str(self.val[4])
             self.ws.send(promMsg)
+
         else:
             self.board.add_piece(Queen("White", self.val[3], self.val[4]))
             promMsg = "White Queen " + str(self.val[3]) + " " + str(self.val[4])
             self.ws.send(promMsg)
+        
         self.menu.disable()
         pass
 
